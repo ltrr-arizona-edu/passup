@@ -48,19 +48,30 @@ else
 fi
 
 #------------------------------------------------------------------------------
-# Generate password candidates until one contains all the required characters.
-
 # Emit a random password, with character class constraints, on standard output.
-emitpasswd () {
-  while p=$(openssl rand -base64 33); do 
-    echo "$p" | grep -q '[0-9]' || continue
-    echo "$p" | grep -q '[A-Z]' || continue
-    echo "$p" | grep -q '[a-z]' || continue
-    echo "$p" | grep -q '[+/]' || continue
-    break
-  done
-  echo "$p"
-}
+
+if command -v pwgen > /dev/null ; then
+  emitpasswd () {
+    pwgen -c -n -s -y 32 1
+  }
+elif command -v apg > /dev/null ; then
+  emitpasswd () {
+    apg -a 1 -n 1 -m 32
+  }
+elif command -v openssl > /dev/null ; then
+  emitpasswd () {
+    while p=$(openssl rand -base64 33); do 
+      echo "$p" | grep -q '[0-9]' || continue
+      echo "$p" | grep -q '[A-Z]' || continue
+      echo "$p" | grep -q '[a-z]' || continue
+      echo "$p" | grep -q '[+/]' || continue
+      break
+    done
+    echo "$p"
+  }
+else
+  errorexit "Depends on pwgen or apg or Openssl to generate password of pseudo-random bytes"
+fi
 
 #------------------------------------------------------------------------------
 # Initial sanity checking.
@@ -69,8 +80,6 @@ command -v curl > /dev/null \
   || errorexit "This reqires curl to access the Stache API endpoints"
 command -v jq > /dev/null \
   || errorexit "This reqires the jq command-line JSON processor"
-command -v openssl > /dev/null \
-  || errorexit "Depends on Openssl to generate password of pseudo-random bytes"
 [ -n "$PASSUP_KEY_READ" ] \
   || errorexit "No API key specified for reading"
 [ -n "$PASSUP_KEY_EDIT" ] \
