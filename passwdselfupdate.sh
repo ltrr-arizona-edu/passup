@@ -52,11 +52,11 @@ fi
 
 if command -v pwgen > /dev/null ; then
   emitpasswd () {
-    pwgen -c -n -s -y 32 1
+    pwgen -c -n -r \\ -s -y 32 1
   }
 elif command -v apg > /dev/null ; then
   emitpasswd () {
-    apg -a 1 -n 1 -m 32
+    apg -a 1 -E \\ -n 1 -m 32
   }
 elif command -v openssl > /dev/null ; then
   emitpasswd () {
