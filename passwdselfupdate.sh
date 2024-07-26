@@ -104,13 +104,14 @@ echo "$resp" | grep -v -q 'message'
 err="$?"
 [ "$err" -eq 0 ] || \
   errorexit "${readfail}, ${readendpoint} responded ${resp}"
-nickname=$(echo "$resp" | jq .nickname)
+flatresp=$(echo "$resp" | tr '\n' ' ')
+nickname=$(echo "$flatresp" | jq .nickname)
 err="$?"
 [ "$err" -eq 0 ] || \
   errorexit "${readfail}, could not parse the ${readendpoint} response as JSON"
 [ -n "$nickname" ] || \
   errorexit "${readfail}, ${readendpoint} did not provide the nickname"
-oldpass=$(echo "$resp" | jq -r .secret)
+oldpass=$(echo "$flatresp" | jq -r .secret)
 [ -n "$oldpass" ] || \
   errorexit "${readfail}, ${readendpoint} did not provide the old password"
 logmessage "${readendpoint} provided the existing Stache entry data"
@@ -134,7 +135,7 @@ err="$?"
 #------------------------------------------------------------------------------
 # Update the contents of the Stache entry with new data.
 
-request=$(echo "$resp" | jq --arg secret "$newpass" --arg memo "$timestamp" '{nickname, purpose, $secret, $memo}')
+request=$(echo "$flatresp" | jq --arg secret "$newpass" --arg memo "$timestamp" '{nickname, purpose, $secret, $memo}')
 err="$?"
 [ "$err" -eq 0 ] || \
   errorexit "Could not create the updated JSON data: status '${err}'"
